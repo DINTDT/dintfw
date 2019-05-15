@@ -1,0 +1,26 @@
+*{
+	image-rendering:-moz-crisp-edges;
+	image-rendering:pixelated;
+}
+body{
+	background-color:green;
+	padding:0px;
+	margin:0px;
+}
+#leftBar, #rightBar{
+	position:fixed;
+	background-color:black;
+}
+.object, .container{
+	position:fixed;
+	overflow:hidden;
+	visibility:hidden;
+	display:inline-block;
+}
+.container .object{
+	position:absolute;
+}
+.bar{
+	background-color:black;
+	position:fixed;
+}
