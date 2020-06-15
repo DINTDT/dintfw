@@ -1,10 +1,10 @@
 //FRAMEWORK VARIABLES
 var keyPress=new Array(233);
-var ObjList=[];
+var ActorList=[];
 var SCREEN_HEIGHT;
 var SCREEN_WIDTH;
-var SCALED_HEIGHT=394;
-var SCALED_WIDTH=512;
+var SCENE_HEIGHT=394;
+var SCENE_WIDTH=512;
 var MARGIN;
 var SCALE;
 var counter=0;
@@ -18,48 +18,93 @@ var X_KEY=88;
 var NUM1_KEY=49;
 
 //FRAMEWORK FUNCTIONS
+
+/*get(ID) returns the HMTLElement that has the id ID. Mostly used by other functions as shorthand for
+	document.getElementByID(). NOTE: Direct HTMLElement manipulation is not recommended*/
 function get(str){return document.getElementById(str);}
 
+/*rescale() sets the SCREEN_HEIGHT and SCREEN_WIDTH values according to the window size and aspect ratio. Also sets
+	the sizes and positions of the margin boxes (the black boxes at the sides)*/
 function rescale(){
+	//Set SCREEN_HEIGHT and SCREEN_WIDTH to actual window size.
 	SCREEN_HEIGHT=window.innerHeight;
 	SCREEN_WIDTH=window.innerWidth;
+	//Find the smallest of the two, and scale the other to the correct aspect ratio.
 	if(SCREEN_HEIGHT>SCREEN_WIDTH){
-		SCREEN_HEIGHT=SCREEN_WIDTH*(SCALED_HEIGHT/SCALED_WIDTH);
+		SCREEN_HEIGHT=SCREEN_WIDTH*(SCENE_HEIGHT/SCENE_WIDTH);
 	} else {
-		SCREEN_WIDTH=SCREEN_HEIGHT*(SCALED_WIDTH/SCALED_HEIGHT);
+		SCREEN_WIDTH=SCREEN_HEIGHT*(SCENE_WIDTH/SCENE_HEIGHT);
 	}
-	SCALE=SCREEN_HEIGHT/SCALED_HEIGHT;
-	SCREEN_HEIGHT=SCALED_HEIGHT*SCALE;
-	SCREEN_WIDTH=SCALED_WIDTH*SCALE;
+	//Find the scene scale
+	SCALE=SCREEN_HEIGHT/SCENE_HEIGHT;
+	//Set SCREEN_HEIGHT and SCREEN_WIDTH to size of the scene, but scaled.
+	SCREEN_HEIGHT=SCENE_HEIGHT*SCALE;
+	SCREEN_WIDTH=SCENE_WIDTH*SCALE;
+	//Find width of margins
 	MARGIN={
 		LEFT:(window.innerWidth/2)-(SCREEN_WIDTH/2),
 		RIGHT:(window.innerWidth/2)-(SCREEN_WIDTH/2)
 	}
+	//Position margins.
 	get("leftBar").style.left=0;
 	get("leftBar").style.width=MARGIN["LEFT"];
 	get("leftBar").style.height=SCREEN_HEIGHT;
 	get("rightBar").style.right=0;
 	get("rightBar").style.width=MARGIN["RIGHT"];
 	get("rightBar").style.height=SCREEN_HEIGHT;
-	ObjList.forEach(function(item, index){
+	//Reset each Actor's position, size and spritePosition to accommodate new scale.
+	ActorList.forEach(function(item, index){
 		item.setPosition(item.x,item.y);
 		item.setSize();
 		item.setSpritePosition(-1,-1);
 	});
 }
 
+/*an Atlas object loads a given spritesheet. The spritesheets width in pixels is required
+	for the scale to work properly.
+		url: Location of the spritesheet image file.
+		width: width in pixels of the spritesheet image file.*/
 function Atlas(url, w){
 	this.url=url;
 	this.width=w;
 }
 
-function Obj(name){
+/*an Actor object is any element of the game that is independent from the background.
+		name: 		String		A string that identifies the actor.
+		element: 	HTMLElement	The html element that represents the actor in the scene.
+		x:			Integer		Horizontal position from the left side of the scene. Counted in scaled pixels.
+		y:			Integer		Vertical position form the top of the scene. Counted in scaled pixels.
+		spriteX:	Integer		Horizontal position of the sprite (to be shown) in the atlas.
+		spriteY:	Integer		Vertical position of the sprite (to be shown) in the atlas.
+		width:		Integer		Width of the actor in scaled pixels.
+		height:		Integer		Height of the actor in scaled pixels.
+		active:		Boolean		A deactivated actor is not shown an cannot be interacted with by other actors.
+		atlas:		Atlas		Atlas object that contains the actor's spritesheet.
+		angle:		Float		Clockwise angle of rotation of the actor.
+		
+		onClick():				Meant to be user-defined. Is called when the actor is clicked.
+		setSize(W,H):			Sets the width and height of the actor to W and H scaled pixels, respectively.
+									Setting W or H to null will keep the previous value.
+		setPosition(X,Y):		Sets the position of the actor in the scene to X and Y in scaled pixels.
+									Setting X or Y to null will keep the previous value.
+		setY(Y):				Sets the y position of the actor in the scene to Y.
+		setX(X):				Sets the x position of the actor in the scene to X.
+		setAtlas(Atlas):		Sets the Atlas object of the actor.
+		setSpritePosition(X,Y):	Changes the current sprite to the one at position X,Y in the current Atlas.
+		spawn(X,Y):				Activates the actor and places it at the position X,Y in the scene.
+		despawn():				Deactivates the actor.
+		setAngle(A):			Sets the current angle of rotation to A.
+		rotate(A):				Changes the current angle of rotation by A.
+		hide():					Makes the actor invisible.
+		show():					Makes the actor visible.
+		*/
+function Actor(name){
 	this.id=name;
 	this.element=document.createElement("div");
-		this.element.className="object";
+		this.element.className="actor";
 		this.element.setAttribute("id",name);
 		get("screen").appendChild(this.element);
-		ObjList.push(this);
+		ActorList.push(this);
 	this.x;
 	this.y;
 	this.spriteX;
@@ -115,17 +160,23 @@ function Obj(name){
 	this.show = function(){this.element.style.visibility="visible";}
 }
 
+/*a Textbox is a special actor, meant to display text.*/
 function Textbox(name){
-	Obj.call(this,name);
+	Actor.call(this,name);
 		//TODO: finish this object!
+		//Most likely, this will have a variable called "content", that contains the text to be displayed.
+		//Maybe, a special kind of textbox that allows for a cursor and options will be available, and it
+		//will return the chosen option when a specific function is called. Or maybe one where the
+		//player may input text directly, using an input element or something. I dunno.
 }
 
-function areColliding(obj1, obj2){
-	if(obj1.active && obj2.active)
-		return !(obj1.x>obj2.x+obj2.width||
-			obj1.x+obj1.width<obj2.x||
-			obj1.y>obj2.y+obj2.height||
-			obj1.y+obj1.height<obj2.y);
+/*areColliding(ACT1,ACT2) returns whether two actors' bounding boxes are overlapping. */
+function areColliding(act1, act2){
+	if(act1.active && act2.active)
+		return !(act1.x>act2.x+act2.width||
+			act1.x+act1.width<act2.x||
+			act1.y>act2.y+act2.height||
+			act1.y+act1.height<act2.y);
 	else return false;
 }
 
@@ -140,6 +191,7 @@ window.onkeyup = function (e) {
 	keyPress[code]=0;
 };
 
+//Prepare the page to work with the framework - FRAMEWORK
 window.onload=function(){
 	var s = document.createElement("div");
 	var r = document.createElement("div");
@@ -153,6 +205,7 @@ window.onload=function(){
 	rescale();
 }
 
+//This function must be called to start the main game loop - FRAMEWORK
 function runGame(func){
 	f = function(){
 		func();
@@ -161,6 +214,7 @@ function runGame(func){
 	gameID = setInterval(f,1000/30);
 }
 
+//When this function is called, the main game loop stops. - FRAMEWORK
 function stopGame(){
 	clearInterval(gameID);
 }

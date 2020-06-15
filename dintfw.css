@@ -3,6 +3,8 @@
 	image-rendering:pixelated;
 }
 body{
+	/*Any part of the scene where an actor doesn't get drawn will display this
+		background-color.*/
 	background-color:green;
 	padding:0px;
 	margin:0px;
