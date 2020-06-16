@@ -3,8 +3,8 @@ var keyPress=new Array(233);
 var ActorList=[];
 var SCREEN_HEIGHT;
 var SCREEN_WIDTH;
-var SCENE_HEIGHT=394;
-var SCENE_WIDTH=512;
+var SCENE_HEIGHT=144;
+var SCENE_WIDTH=160;
 var MARGIN;
 var SCALE;
 var counter=0;
@@ -54,9 +54,9 @@ function rescale(){
 	get("rightBar").style.height=SCREEN_HEIGHT;
 	//Reset each Actor's position, size and spritePosition to accommodate new scale.
 	ActorList.forEach(function(item, index){
-		item.setPosition(item.x,item.y);
+		item.setSpritePosition();
+		item.setPosition();
 		item.setSize();
-		item.setSpritePosition(-1,-1);
 	});
 }
 
@@ -82,7 +82,7 @@ function Atlas(url, w){
 		atlas:		Atlas		Atlas object that contains the actor's spritesheet.
 		angle:		Float		Clockwise angle of rotation of the actor.
 		
-		onClick():				Meant to be user-defined. Is called when the actor is clicked.
+		onClick(f):				Meant to be user-defined. Calls the given function F when the actor is clicked.
 		setSize(W,H):			Sets the width and height of the actor to W and H scaled pixels, respectively.
 									Setting W or H to null will keep the previous value.
 		setPosition(X,Y):		Sets the position of the actor in the scene to X and Y in scaled pixels.
@@ -118,7 +118,7 @@ function Actor(name){
 	this.onClick = function(f){this.element.onclick=f;}
 
 	this.setSize = function(w, h){
-		this.widht=w==null?this.width:w;
+		this.width=w==null?this.width:w;
 		this.height=h==null?this.height:h;
 		this.element.style.height=SCALE*this.height;
 		this.element.style.width=SCALE*this.width;
@@ -205,7 +205,7 @@ window.onload=function(){
 	rescale();
 }
 
-//This function must be called to start the main game loop - FRAMEWORK
+//This function provides the heartbeat for a main loop function, which is user-defined. - FRAMEWORK
 function runGame(func){
 	f = function(){
 		func();
