@@ -9,9 +9,7 @@ var MARGIN;
 var SCALE;
 var counter=0;
 var state="STARTUP";
-
-var VERTICAL=0;
-var HORIZONTAL=1;
+var screen;
 
 var Z_KEY=90;
 var X_KEY=88;
@@ -37,21 +35,21 @@ function rescale(){
 	}
 	//Find the scene scale
 	SCALE=SCREEN_HEIGHT/SCENE_HEIGHT;
+	//Forces SCALE to be an integer value. This prevents that weird effect where some pixels look thicker or taller.
+	//However, the scene will now have borders on all four sides, instead of just the left and right.
+	SCALE=Math.floor(SCALE);
 	//Set SCREEN_HEIGHT and SCREEN_WIDTH to size of the scene, but scaled.
 	SCREEN_HEIGHT=SCENE_HEIGHT*SCALE;
 	SCREEN_WIDTH=SCENE_WIDTH*SCALE;
 	//Find width of margins
 	MARGIN={
-		LEFT:(window.innerWidth/2)-(SCREEN_WIDTH/2),
-		RIGHT:(window.innerWidth/2)-(SCREEN_WIDTH/2)
+		HORIZONTAL:(window.innerWidth/2)-(SCREEN_WIDTH/2),
+		VERTICAL:(window.innerHeight/2)-(SCREEN_HEIGHT/2)
 	}
-	//Position margins.
-	get("leftBar").style.left=0;
-	get("leftBar").style.width=MARGIN["LEFT"];
-	get("leftBar").style.height=SCREEN_HEIGHT;
-	get("rightBar").style.right=0;
-	get("rightBar").style.width=MARGIN["RIGHT"];
-	get("rightBar").style.height=SCREEN_HEIGHT;
+	screen.style.marginLeft=MARGIN["HORIZONTAL"]+"px";
+	screen.style.marginRight=MARGIN["HORIZONTAL"]+"px";
+	screen.style.marginBottom=MARGIN["VERTICAL"]+"px";
+	screen.style.marginTop=MARGIN["VERTICAL"]+"px";
 	//Reset each Actor's position, size and spritePosition to accommodate new scale.
 	ActorList.forEach(function(item, index){
 		item.setSpritePosition();
@@ -126,14 +124,14 @@ function Actor(name){
 	this.setPosition = function(x, y){
 		this.x=x==null?this.x:x;
 		this.y=y==null?this.y:y;
-		this.element.style.top=SCALE*this.y;
-		this.element.style.left=MARGIN["LEFT"]+(SCALE*this.x);}
+		this.element.style.top=MARGIN["VERTICAL"]+(SCALE*this.y);
+		this.element.style.left=MARGIN["HORIZONTAL"]+(SCALE*this.x);}
 	this.setY = function(y){
 		this.y=y==null?this.y:y;
-		this.element.style.top=(this.y*SCALE)+"px";}
+		this.element.style.top=(MARGIN["VERTICAL"]+(SCALE*this.y))+"px";}
 	this.setX = function(x){
 		this.x=x==null?this.x:x;
-		this.element.style.left=(MARGIN["LEFT"]+(this.x*SCALE))+"px";}
+		this.element.style.left=(MARGIN["HORIZONTAL"]+(this.x*SCALE))+"px";}
 	this.setAtlas = function(a){
 		this.atlas=a;
 		this.element.style.background='url("'+a.url+'")';
@@ -193,16 +191,11 @@ window.onkeyup = function (e) {
 
 //Prepare the page to work with the framework - FRAMEWORK
 window.onload=function(){
-	var s = document.createElement("div");
-	var r = document.createElement("div");
-	var l = document.createElement("div");
-	s.setAttribute("id","screen");
-	l.setAttribute("id","leftBar");
-	r.setAttribute("id","rightBar");
-	document.body.appendChild(s);
-	document.body.appendChild(l);
-	document.body.appendChild(r);
+	screen = document.createElement("div");
+	screen.setAttribute("id","screen");
+	document.body.appendChild(screen);
 	rescale();
+	prepare();
 }
 
 //This function provides the heartbeat for a main loop function, which is user-defined. - FRAMEWORK
