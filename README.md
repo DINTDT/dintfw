@@ -1,17 +1,16 @@
 # dintfw
 A pure HTML/JS/CSS 2d game engine.
 
-This README file is temporary and a better looking one will probably be
-made at some point in the future.
+This README file is temporary and a better looking one will probably be made at some point in the future.
 The following information is probably important:
 
 - The engine is very young and, in its current state, is only meant to be **effective**, but not
 neccesarily **efficient**.
 - Currently, there is no documentation on how to use the engine. It will probably be made in the near future.
 The code is now commentated, although I haven't had it reviewed, so I just assume it's readable.
-- The engine uses HTML's elements as the game objects and sprites. It does not use *canvas*
+- The engine uses HTML's elements as the game objects and sprites. It does not use *canvas*.
 - The engine can only display 2D images, and they must be provided in a tileset or spritesheet. 
--The engine uses the HTML *audio* tag for audio capabilities.
+- The engine uses the HTML *audio* tag for audio capabilities.
 
 Some terminology that is used in the code's comments:
 - "Window", "Screen" and "Scene" refer to the where the graphics are displayed, but they are *not* interchangeable terms:
